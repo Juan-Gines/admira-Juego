@@ -17,7 +17,9 @@ let marcador = 0;
 //variables id de interval timeout
 let niveles, agregar;
 
-//
+//Funciones que pintan en el lienzo-------------------------
+
+//Función que pinta y controla los elementos moviles
 const draw = () => {
 	let stop = false;
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -41,17 +43,7 @@ const draw = () => {
 	}
 };
 
-const gameOver = () => {
-	cancelAnimationFrame(requestAnimationFrame(draw));
-	clearInterval(niveles);
-	clearTimeout(agregar);
-	removeEventListener('keydown', () => {});
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	drawBackground();
-	ctx.font = '36px serif';
-	ctx.fillStyle = 'red';
-	ctx.fillText('GAME OVER', canvas.width / 2 - 110, 100);
-};
+//Función que pinta el background del lienzo
 
 const drawBackground = () => {
 	const linearGradient = ctx.createLinearGradient(
@@ -71,6 +63,9 @@ const drawBackground = () => {
 	ctx.strokeRect(0, 0, canvas.width, canvas.height);
 };
 
+//----------------------- Funciones de lógica del juego y gestión de datos -----------------
+
+//Función que construye los datos de los elementos del juego
 const getCosas = ({ x = 5, y = 100, vx = 10, vy = 0, letra = 'b' }) => ({
 	x,
 	y,
@@ -82,18 +77,21 @@ const getCosas = ({ x = 5, y = 100, vx = 10, vy = 0, letra = 'b' }) => ({
 	},
 });
 
-const getRandomChar = () => {
-	min = Math.ceil(97);
-	max = Math.floor(122);
-	return String.fromCharCode(Math.floor(Math.random() * (max - min + 1) + min));
+//Función que agrega elementos al array para pintarlos
+const agregarElementos = () => {
+	if (elementos.length < stage.max) {
+		let cosa = getCosas({
+			y: getRandomNumber(10, canvas.height - 80),
+			vx: stage.vx,
+			vy: getRandomNumber(0, 4),
+			letra: getRandomChar(),
+		});
+		elementos.push(cosa);
+	}
+	agregar = setTimeout(agregarElementos, getRandomNumber(stage.minA, stage.maxA));
 };
 
-const getRandomNumber = (min, max) => {
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min + 1) + min);
-};
-
+//Función que setea la dificultad y devuelve los datos referentes a ella
 const setDifficult = () => {
 	const timestamp = Date.now();
 	const stages = [
@@ -126,19 +124,7 @@ const setDifficult = () => {
 	}
 };
 
-const agregarElementos = () => {
-	if (elementos.length < stage.max) {
-		let cosa = getCosas({
-			y: getRandomNumber(10, canvas.height - 80),
-			vx: stage.vx,
-			vy: getRandomNumber(0, 4),
-			letra: getRandomChar(),
-		});
-		elementos.push(cosa);
-	}
-	agregar = setTimeout(agregarElementos, getRandomNumber(stage.minA, stage.maxA));
-};
-
+//Función que captura los elementos o suma fallos
 const capturar = (key) => {
 	if (elementos.find((element) => element.letra == key)) {
 		for (let i = 0; i < elementos.length; i++) {
@@ -150,10 +136,10 @@ const capturar = (key) => {
 		}
 	} else {
 		fail++;
-		console.log('fail');
 	}
 };
 
+//Función que suma puntos al marcador
 const sumarPuntos = (captura) => {
 	let disX = (captura.x * 100) / canvas.width;
 	const divisores = [1, 0.9, 0.8, 0.7, 0.6, 0.5];
@@ -193,13 +179,45 @@ const sumarPuntos = (captura) => {
 			puntos = puntos * divisores[5];
 			break;
 	}
-	console.log(puntos);
 	fail = 0;
 	marcador += puntos;
 	puntuaje.innerHTML = marcador;
 };
 
+//Función que termina el juego, cancela eventos, intervalos, timeouts y animaciones
+const gameOver = () => {
+	cancelAnimationFrame(requestAnimationFrame(draw));
+	clearInterval(niveles);
+	clearTimeout(agregar);
+	removeEventListener('keydown', () => {});
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	drawBackground();
+	ctx.font = '36px serif';
+	ctx.fillStyle = 'red';
+	ctx.fillText('GAME OVER', canvas.width / 2 - 110, 100);
+};
+
+//----------------- Funciones auxiliares-------------------------
+
+//Función que devuelve una letra random
+const getRandomChar = () => {
+	min = Math.ceil(97);
+	max = Math.floor(122);
+	return String.fromCharCode(Math.floor(Math.random() * (max - min + 1) + min));
+};
+
+//Función que devuelve un número random
+const getRandomNumber = (min, max) => {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+//-------------------- Funciones que resetean variables y estados -----------------------
+
+//Función que inicia el juego
 const start = () => {
+	reset();
 	time = Date.now();
 	setDifficult();
 	niveles = setInterval(setDifficult, 61000);
@@ -208,6 +226,7 @@ const start = () => {
 	requestAnimationFrame(draw);
 };
 
+//función que resetea variables globales
 const reset = () => {
 	elementos = [];
 	stage = {};
@@ -215,6 +234,9 @@ const reset = () => {
 	marcador = 0;
 };
 
+//------------------- Funciones relativas a los eventos --------------------------
+
+//Función relativa el evento keydown que controla las teclas que se tocan
 const keyPresionada = (e) => {
 	e.preventDefault();
 	let keyCode = e.key.length == 1 ? e.key.toLowerCase().charCodeAt(0) : 10;
@@ -223,13 +245,18 @@ const keyPresionada = (e) => {
 	}
 };
 
+//-------------------------------------------------- Eventos --------------------------------------------
+
+//Evento que pinta el lienzo al cargar la página
 window.onload = () => {
 	drawBackground();
 };
-//eventos
 
+//Evento que inicia el juego
 buttonStart.addEventListener('click', (e) => {
 	e.preventDefault();
+	reset;
 	start();
-	addEventListener('keydown', keyPresionada);
+
+	addEventListener('keydown', keyPresionada); //evento que contro las keys que tecleamos
 });
