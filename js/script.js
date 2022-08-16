@@ -1,20 +1,23 @@
-//inicializamos el canvas
+//instanciamos el canvas y los elementos html
 const canvas = document.getElementById('canvas');
 canvas.width = '1200';
-canvas.height = '600';
+canvas.height = '500';
 const ctx = canvas.getContext('2d');
-canvas.classList.add('canvas');
 
 const buttonStart = document.getElementById('start');
+const puntuaje = document.getElementById('puntos');
 
+//variables guardado de datos
 let elementos = [];
-let maxElements;
 let time = Date.now();
 let fail = 0;
 let stage = {};
-let niveles;
-let raf;
+let marcador = 0;
 
+//variables id de interval timeout
+let niveles, agregar;
+
+//
 const draw = () => {
 	let stop = false;
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -32,18 +35,22 @@ const draw = () => {
 		}
 	});
 	if (!stop) {
-		raf = window.requestAnimationFrame(draw);
+		requestAnimationFrame(draw);
 	} else {
 		gameOver();
 	}
-	console.log(raf);
 };
 
 const gameOver = () => {
 	cancelAnimationFrame(requestAnimationFrame(draw));
-	elementos = [];
+	clearInterval(niveles);
+	clearTimeout(agregar);
+	removeEventListener('keydown', () => {});
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawBackground();
+	ctx.font = '36px serif';
+	ctx.fillStyle = 'red';
+	ctx.fillText('GAME OVER', canvas.width / 2 - 110, 100);
 };
 
 const drawBackground = () => {
@@ -90,12 +97,12 @@ const getRandomNumber = (min, max) => {
 const setDifficult = () => {
 	const timestamp = Date.now();
 	const stages = [
-		{ level: 1, vx: 10, max: 2, minA: 1500, maxA: 2000 },
-		{ level: 2, vx: 2, max: 3, minA: 1200, maxA: 1600 },
-		{ level: 3, vx: 3, max: 4, minA: 1000, maxA: 1500 },
-		{ level: 4, vx: 5, max: 6, minA: 800, maxA: 1200 },
-		{ level: 5, vx: 6, max: 8, minA: 600, maxA: 1000 },
-		{ level: 6, vx: 8, max: 10, minA: 500, maxA: 800 },
+		{ level: 1, vx: 1, max: 2, minA: 1500, maxA: 2000, puntos: 1000 },
+		{ level: 2, vx: 2, max: 3, minA: 1200, maxA: 1600, puntos: 2000 },
+		{ level: 3, vx: 3, max: 4, minA: 1000, maxA: 1500, puntos: 4000 },
+		{ level: 4, vx: 5, max: 6, minA: 800, maxA: 1200, puntos: 6000 },
+		{ level: 5, vx: 6, max: 8, minA: 600, maxA: 1000, puntos: 8000 },
+		{ level: 6, vx: 8, max: 10, minA: 500, maxA: 800, puntos: 10000 },
 	];
 
 	if (timestamp - time < 60000) {
@@ -129,18 +136,90 @@ const agregarElementos = () => {
 		});
 		elementos.push(cosa);
 	}
-	setTimeout(agregarElementos, getRandomNumber(stage.minA, stage.maxA));
+	agregar = setTimeout(agregarElementos, getRandomNumber(stage.minA, stage.maxA));
 };
 
 const capturar = (key) => {
-	console.log(elementos.find((element) => element.letra == key));
-	for (let i = 0; i < elementos.length; i++) {
-		if (key == elementos[i].letra) {
-			console.log(elementos.splice(i, 1));
-			i--;
-		} else {
-			fail++;
+	if (elementos.find((element) => element.letra == key)) {
+		for (let i = 0; i < elementos.length; i++) {
+			if (key == elementos[i].letra) {
+				let captura = elementos.splice(i, 1);
+				i--;
+				sumarPuntos(captura[0]);
+			}
 		}
+	} else {
+		fail++;
+		console.log('fail');
+	}
+};
+
+const sumarPuntos = (captura) => {
+	let disX = (captura.x * 100) / canvas.width;
+	const divisores = [1, 0.9, 0.8, 0.7, 0.6, 0.5];
+	let puntos = stage.puntos;
+
+	switch (true) {
+		case disX >= 75:
+			puntos = puntos * divisores[3];
+			break;
+		case disX < 75 && disX >= 50:
+			puntos = puntos * divisores[2];
+			break;
+		case disX < 50 && disX >= 25:
+			puntos = puntos * divisores[1];
+			break;
+		case disX < 25:
+			puntos = puntos * divisores[0];
+			break;
+	}
+	switch (fail) {
+		case 0:
+			puntos = puntos * divisores[0];
+			break;
+		case 1:
+			puntos = puntos * divisores[1];
+			break;
+		case 2:
+			puntos = puntos * divisores[2];
+			break;
+		case 3:
+			puntos = puntos * divisores[3];
+			break;
+		case 4:
+			puntos = puntos * divisores[4];
+			break;
+		default:
+			puntos = puntos * divisores[5];
+			break;
+	}
+	console.log(puntos);
+	fail = 0;
+	marcador += puntos;
+	puntuaje.innerHTML = marcador;
+};
+
+const start = () => {
+	time = Date.now();
+	setDifficult();
+	niveles = setInterval(setDifficult, 61000);
+	drawBackground();
+	agregarElementos();
+	requestAnimationFrame(draw);
+};
+
+const reset = () => {
+	elementos = [];
+	stage = {};
+	fail = 0;
+	marcador = 0;
+};
+
+const keyPresionada = (e) => {
+	e.preventDefault();
+	let keyCode = e.key.length == 1 ? e.key.toLowerCase().charCodeAt(0) : 10;
+	if (keyCode < 123 && keyCode > 96) {
+		capturar(e.key.toLowerCase());
 	}
 };
 
@@ -151,18 +230,6 @@ window.onload = () => {
 
 buttonStart.addEventListener('click', (e) => {
 	e.preventDefault();
-	time = Date.now();
-	setDifficult();
-	niveles = setInterval(setDifficult, 61000);
-	drawBackground();
-	agregarElementos();
-	raf = window.requestAnimationFrame(draw);
-	addEventListener('keydown', (e) => {
-		e.preventDefault();
-		let keyCode = e.key.length == 1 ? e.key.toLowerCase().charCodeAt(0) : 10;
-		if (keyCode < 123 && keyCode > 96) {
-			capturar(e.key.toLowerCase());
-			console.log('es una tecla');
-		}
-	});
+	start();
+	addEventListener('keydown', keyPresionada);
 });

@@ -1,5 +1,6 @@
 .start,
-.canvas {
+.canvas,
+.resultados {
 	display: flex;
 	align-items: center;
 	justify-content: center;
