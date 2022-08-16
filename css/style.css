@@ -1,4 +1,5 @@
-.start {
+.start,
+.canvas {
 	display: flex;
 	align-items: center;
 	justify-content: center;
