@@ -18,13 +18,13 @@
 		<header class="main-header">
 			<h1 class="title">Atrapa Cosas</h1>
 		</header>
-		<article class="instrucciones">
+		<section class="instrucciones">
 			<header class="instrucciones-header">
 				<h3 class="instrucciones-title">Instrucciones</h3>
 			</header>
 			<div class="instrucciones-body">
 				<p>
-					Consigue la máxima puntuación presionando la tecla de la primera letra de las imágenes que
+					Consigue la máxima puntuación presionando la tecla de la primera letra de las cosas que
 					aparecerán en pantalla.
 				</p>
 				<p>¡Cuidado!, si las cosas llegan al borde derecho de la pantalla el juego termina.</p>
@@ -33,9 +33,9 @@
 					en pantalla y conseguirás puntuación extra. ¡Buena suerte!
 				</p>
 			</div>
-		</article>
+		</section>
 
-		<div class="elementos">
+		<section class="elementos">
 			<img id="a" src="imagenes/abeja.png" alt="una abeja" />
 			<img id="b" src="imagenes/bonus.png" alt="una platillo volador" />
 			<img id="c" src="imagenes/casa.png" alt="una casa" />
@@ -62,11 +62,11 @@
 			<img id="x" src="imagenes/xilofono.png" alt="un xilofono" />
 			<img id="y" src="imagenes/yeti.png" alt="el yeti" />
 			<img id="z" src="imagenes/zombi.png" alt="un zombi" />
-		</div>
+		</section>
 		<div class="canvas">
 			<canvas id="canvas"></canvas>
 		</div>
-		<div class="resultados">
+		<section class="resultados">
 			<div id="start" class="start">
 				<button id="buttonStart" class="btn btn-primary btn-lg" type="button">
 					<span>Empezar partida</span>
@@ -84,12 +84,7 @@
 					<span id="record">0</span>
 				</span>
 			</div>
-			<div id="info" class="panel-info display-none">
-				<span id="info-text" class="etiqueta fs-5">
-					<span id="info-secondary"></span>
-				</span>
-			</div>
-		</div>
+		</section>
 		<script src="js/script.js"></script>
 	</body>
 </html>

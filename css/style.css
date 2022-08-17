@@ -106,16 +106,16 @@ img {
 	display: none;
 }
 
-.enable-button {
+.enable {
 	animation-name: opacityFull;
-	animation-duration: 2s;
+	animation-duration: 1.2s;
 	animation-iteration-count: 1;
 	animation-fill-mode: forwards;
 }
 
-.disable-button {
+.disable {
 	animation-name: opacityNone;
-	animation-duration: 2s;
+	animation-duration: 1.2s;
 	animation-iteration-count: 1;
 	animation-fill-mode: forwards;
 }

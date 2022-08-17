@@ -4,10 +4,11 @@ canvas.width = '1200';
 canvas.height = '500';
 const ctx = canvas.getContext('2d');
 
+//identificamos elementos html
 const buttonStart = document.getElementById('buttonStart');
 const puntuaje = document.getElementById('puntos');
 const startPanel = document.getElementById('start');
-const infoPanel = document.getElementById('info');
+const recordTexto = document.getElementById('record');
 
 //variables guardado de datos
 let elementos = [];
@@ -130,7 +131,6 @@ const agregarPuntos = ({ x, y, p }) => {
 		p,
 	});
 	puntos.push(punto);
-	console.log(puntos);
 };
 
 //Función que agrega el elemento b bonus al array para pintarlo
@@ -144,7 +144,7 @@ const agregarBonus = () => {
 const setDifficult = () => {
 	const timestamp = Date.now();
 	const stages = [
-		{ level: 1, vx: 1, max: 2, minA: 1500, maxA: 2000, puntos: 1000 },
+		{ level: 1, vx: 10, max: 2, minA: 1500, maxA: 2000, puntos: 1000 },
 		{ level: 2, vx: 2, max: 3, minA: 1200, maxA: 1600, puntos: 2000 },
 		{ level: 3, vx: 3, max: 4, minA: 1000, maxA: 1500, puntos: 4000 },
 		{ level: 4, vx: 5, max: 6, minA: 800, maxA: 1200, puntos: 6000 },
@@ -241,20 +241,76 @@ const sumarPuntos = (captura) => {
 
 //Función que termina el juego, cancela eventos, intervalos, timeouts y animaciones
 const gameOver = () => {
+	//Cancelamos animaciones temporales y removemos eventos
 	cancelAnimationFrame(requestAnimationFrame(draw));
 	clearInterval(niveles);
 	clearTimeout(agregar);
 	clearTimeout(agBonus);
 	removeEventListener('keydown', () => {});
+
+	//damos animaciones al panel de resultados
 	buttonStart.removeAttribute('disabled');
-	buttonStart.classList.add('enable-button');
-	buttonStart.classList.remove('disable-button');
+	buttonStart.classList.add('enable');
+	buttonStart.classList.remove('disable');
 	startPanel.classList.remove('display-none');
+
+	//dibujamos el game over en el lienzo
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawBackground();
 	ctx.font = '36px serif';
 	ctx.fillStyle = '#fc6364';
 	ctx.fillText('GAME OVER', canvas.width / 2 - 110, 100);
+
+	//comprobamos si hemos conseguido un nuevo récord
+	comprobarRecord(marcador);
+};
+
+//----------------- Funciones ajax para la base de datos ---------------
+
+//Función que comprueba si tenemos nuevo record o si viene vacio imprime el record en la pantalla
+const comprobarRecord = (marcador = false) => {
+	fetch('controllers/Controller.php')
+		.then((res) => res.json())
+		.then((data) => {
+			const record = parseInt(data.puntuacion);
+			if (!isNaN(record)) {
+				if (marcador === false) {
+					if (marcador > record) {
+						grabarRecord();
+					} else {
+						recordTexto.innerHTML = data.puntuacion;
+						return console.log('no lo lograste');
+					}
+				} else {
+					recordTexto.innerHTML = data.puntuacion;
+				}
+			} else {
+				console.log('no hay registros');
+				if (marcador && marcador !== 0) {
+					grabarRecord();
+				}
+			}
+		})
+		.catch((err) => {
+			console.error('ERROR: ', err.message);
+		});
+};
+
+//Función que graba el record en la base de datos
+const grabarRecord = () => {
+	let datos = new FormData();
+	datos.append('marcador', marcador);
+	fetch('controllers/Controller.php', {
+		method: 'POST',
+		body: datos,
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			recordTexto.innerHTML = data.puntuacion;
+		})
+		.catch((err) => {
+			console.error('ERROR: ', err.message);
+		});
 };
 
 //----------------- Funciones auxiliares-------------------------
@@ -286,17 +342,18 @@ const start = () => {
 	reset();
 
 	//damos visivilidad y animacion al panel resultados
-	buttonStart.classList.add('disable-button');
+	buttonStart.classList.add('disable');
 	buttonStart.setAttribute('disabled', true);
 	setTimeout(() => {
 		startPanel.classList.add('display-none');
-	}, 2000);
-	setTimeout(() => {
-		startPanel.classList.add('display-none');
-	}, 2000);
+	}, 1200);
+
+	//iniciamos datos temporales
 	time = Date.now();
 	setDifficult();
 	niveles = setInterval(setDifficult, 61000);
+
+	//agregamos elementos al liezo y lo arrancamos
 	drawBackground();
 	agregarElementos();
 	agBonus = setTimeout(agregarBonus, 65000);
@@ -327,6 +384,7 @@ const keyPresionada = (e) => {
 //Evento que pinta el lienzo al cargar la página
 window.onload = () => {
 	drawBackground();
+	comprobarRecord();
 };
 
 //Evento que inicia el juego
