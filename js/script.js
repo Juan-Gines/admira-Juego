@@ -16,7 +16,7 @@ let marcador = 0;
 let puntos = [];
 
 //variables id de interval timeout
-let niveles, agregar;
+let niveles, agregar, agBonus;
 
 //Funciones que pintan en el lienzo-------------------------
 
@@ -25,24 +25,30 @@ const draw = () => {
 	let stop = false;
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawBackground();
-	elementos.forEach((elemento) => {
-		elemento.draw();
-		elemento.x += elemento.vx;
-		elemento.y += elemento.vy;
 
-		if (elemento.y + elemento.vy > canvas.height - 70 || elemento.y + elemento.vy < 10) {
-			elemento.vy = -elemento.vy;
-		}
-		if (elemento.x + elemento.vx > canvas.width - 51) {
-			stop = true;
-		}
-	});
+	//dibuja puntuajes en lienzo
 	puntos.forEach((punto, index) => {
 		if (punto.o > 0) {
 			punto.draw();
 			punto.o -= 0.01;
 		} else {
 			puntos.splice(index, 1);
+		}
+	});
+
+	//dibuja elementos en tapiz
+	elementos.forEach((elemento, index) => {
+		elemento.draw();
+		elemento.x += elemento.vx;
+		elemento.y += elemento.vy;
+
+		if (elemento.y + elemento.vy > canvas.height - 100 || elemento.y + elemento.vy < 10) {
+			elemento.vy = -elemento.vy;
+		}
+		if (elemento.x + elemento.vx > canvas.width - 80 && elemento.letra !== 'b') {
+			stop = true;
+		} else if (elemento.x + elemento.vx > canvas.width - 80 && elemento.letra === 'b') {
+			elementos.splice(index, 1);
 		}
 	});
 	if (!stop) {
@@ -103,7 +109,7 @@ const getPuntos = ({ x, y, p }) => ({
 const agregarElementos = () => {
 	if (elementos.length < stage.max) {
 		let cosa = getCosas({
-			y: getRandomNumber(10, canvas.height - 80),
+			y: getRandomNumber(10, canvas.height - 100),
 			vx: stage.vx,
 			vy: getRandomNumber(0, 4),
 			letra: getRandomChar(),
@@ -124,6 +130,13 @@ const agregarPuntos = ({ x, y, p }) => {
 	console.log(puntos);
 };
 
+//Función que agrega el elemento b bonus al array para pintarlo
+const agregarBonus = () => {
+	let bono = getCosas({});
+	elementos.push(bono);
+	agBonus = setTimeout(agregarBonus, getRandomNumber(60000, 90000));
+};
+
 //Función que setea la dificultad y devuelve los datos referentes a ella
 const setDifficult = () => {
 	const timestamp = Date.now();
@@ -138,34 +151,36 @@ const setDifficult = () => {
 
 	if (timestamp - time < 60000) {
 		stage = stages[0];
-		return;
 	} else if (timestamp - time < 120000) {
 		stage = stages[1];
-		return;
 	} else if (timestamp - time < 180000) {
 		stage = stages[2];
-		return;
 	} else if (timestamp - time < 240000) {
 		stage = stages[3];
-		return;
 	} else if (timestamp - time < 300000) {
 		stage = stages[4];
-		return;
-	} else if (timestamp - time > 360000) {
+	} else if (timestamp - time > 300000) {
 		stage = stages[5];
-		return;
 	}
 };
 
 //Función que captura los elementos o suma fallos
 const capturar = (key) => {
 	if (elementos.find((element) => element.letra == key)) {
-		for (let i = 0; i < elementos.length; i++) {
-			if (key == elementos[i].letra) {
+		if (key !== 'b') {
+			for (let i = 0; i < elementos.length; i++) {
+				if (key == elementos[i].letra) {
+					let captura = elementos.splice(i, 1);
+					i--;
+					let punto = sumarPuntos(captura[0]);
+					agregarPuntos(punto);
+				}
+			}
+		} else {
+			for (let i = 0; i < elementos.length; i++) {
 				let captura = elementos.splice(i, 1);
 				i--;
 				let punto = sumarPuntos(captura[0]);
-				console.log(punto);
 				agregarPuntos(punto);
 			}
 		}
@@ -215,6 +230,7 @@ const sumarPuntos = (captura) => {
 			break;
 	}
 	fail = 0;
+	captura.letra === 'b' ? (puntos = 20000) : '';
 	marcador += puntos;
 	puntuaje.innerHTML = marcador;
 	return { p: puntos, x: captura.x, y: captura.y };
@@ -225,6 +241,7 @@ const gameOver = () => {
 	cancelAnimationFrame(requestAnimationFrame(draw));
 	clearInterval(niveles);
 	clearTimeout(agregar);
+	clearTimeout(agBonus);
 	removeEventListener('keydown', () => {});
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawBackground();
@@ -239,7 +256,12 @@ const gameOver = () => {
 const getRandomChar = () => {
 	min = Math.ceil(97);
 	max = Math.floor(122);
-	return String.fromCharCode(Math.floor(Math.random() * (max - min + 1) + min));
+	let codAscii = Math.floor(Math.random() * (max - min + 1) + min);
+	if (codAscii === 98) {
+		return getRandomChar();
+	} else {
+		return String.fromCharCode(codAscii);
+	}
 };
 
 //Función que devuelve un número random
@@ -259,6 +281,7 @@ const start = () => {
 	niveles = setInterval(setDifficult, 61000);
 	drawBackground();
 	agregarElementos();
+	agBonus = setTimeout(agregarBonus, 65000);
 	requestAnimationFrame(draw);
 };
 
