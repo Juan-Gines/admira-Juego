@@ -4,17 +4,37 @@
 		<meta charset="UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Juego Admira</title>
+		<title>Juego Admira Atrapa Artículos</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx"
+			crossorigin="anonymous"
+		/>
+
 		<link rel="stylesheet" href="css/style.css" />
 	</head>
 	<body>
-		<h1>Atrapa Cosas</h1>
-		<h3>Instrucciones</h3>
-		<p>
-			Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime, commodi obcaecati doloribus
-			totam deserunt explicabo veritatis quam officiis eos, alias dolorum dolore error doloremque
-			necessitatibus ut facilis. Quam, repudiandae illo?
-		</p>
+		<header class="main-header">
+			<h1 class="title">Atrapa Cosas</h1>
+		</header>
+		<article class="instrucciones">
+			<header class="instrucciones-header">
+				<h3 class="instrucciones-title">Instrucciones</h3>
+			</header>
+			<div class="instrucciones-body">
+				<p>
+					Consigue la máxima puntuación presionando la tecla de la primera letra de las imágenes que
+					aparecerán en pantalla.
+				</p>
+				<p>¡Cuidado!, si las cosas llegan al borde derecho de la pantalla el juego termina.</p>
+				<p>
+					Si atrapas el Bonus (un platillo volante) con la tecla b, cogerás todas las cosas que haya
+					en pantalla y conseguirás puntuación extra. ¡Buena suerte!
+				</p>
+			</div>
+		</article>
+
 		<div class="elementos">
 			<img id="a" src="imagenes/abeja.png" alt="una abeja" />
 			<img id="b" src="imagenes/bonus.png" alt="una platillo volador" />
@@ -43,17 +63,31 @@
 			<img id="y" src="imagenes/yeti.png" alt="el yeti" />
 			<img id="z" src="imagenes/zombi.png" alt="un zombi" />
 		</div>
-		<div class="start">
-			<div class="btn">
-				<button id="start" type="button">Empezar partida</button>
-			</div>
-		</div>
 		<div class="canvas">
 			<canvas id="canvas"></canvas>
 		</div>
 		<div class="resultados">
+			<div id="start" class="start">
+				<button id="buttonStart" class="btn btn-primary btn-lg" type="button">
+					<span>Empezar partida</span>
+				</button>
+			</div>
 			<div class="panel-puntos">
-				<p>Puntuación: <span id="puntos">0</span></p>
+				<span class="etiqueta fs-5"
+					>Puntuación:
+					<span id="puntos">0</span>
+				</span>
+			</div>
+			<div class="panel-record">
+				<span class="etiqueta fs-5"
+					>Récord:
+					<span id="record">0</span>
+				</span>
+			</div>
+			<div id="info" class="panel-info display-none">
+				<span id="info-text" class="etiqueta fs-5">
+					<span id="info-secondary"></span>
+				</span>
 			</div>
 		</div>
 		<script src="js/script.js"></script>

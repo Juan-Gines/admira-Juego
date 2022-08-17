@@ -4,8 +4,10 @@ canvas.width = '1200';
 canvas.height = '500';
 const ctx = canvas.getContext('2d');
 
-const buttonStart = document.getElementById('start');
+const buttonStart = document.getElementById('buttonStart');
 const puntuaje = document.getElementById('puntos');
+const startPanel = document.getElementById('start');
+const infoPanel = document.getElementById('info');
 
 //variables guardado de datos
 let elementos = [];
@@ -18,7 +20,7 @@ let puntos = [];
 //variables id de interval timeout
 let niveles, agregar, agBonus;
 
-//Funciones que pintan en el lienzo-------------------------
+//------------------ Funciones que pintan en el lienzo -------------------------
 
 //Función que pinta y controla los elementos moviles
 const draw = () => {
@@ -30,7 +32,11 @@ const draw = () => {
 	puntos.forEach((punto, index) => {
 		if (punto.o > 0) {
 			punto.draw();
-			punto.o -= 0.01;
+			if (punto.t > 0) {
+				punto.t -= 1;
+			} else {
+				punto.o -= 0.01;
+			}
 		} else {
 			puntos.splice(index, 1);
 		}
@@ -71,11 +77,7 @@ const drawBackground = () => {
 	//linearGradient.addColorStop(0.5, 'rgb(95, 0, 0)');
 	linearGradient.addColorStop(1, 'rgb(253, 246, 231)');
 	ctx.fillStyle = linearGradient;
-	ctx.lineWidth = 15;
-	ctx.lineJoin = 'round';
-	ctx.strokeStyle = 'rgb(10, 1, 90)';
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
-	ctx.strokeRect(0, 0, canvas.width, canvas.height);
+	ctx.fillRect(5, 0, canvas.width - 10, canvas.height);
 };
 
 //----------------------- Funciones de lógica del juego y gestión de datos -----------------
@@ -98,6 +100,7 @@ const getPuntos = ({ x, y, p }) => ({
 	y,
 	p,
 	o: 1,
+	t: 30,
 	draw() {
 		ctx.font = '20px serif';
 		ctx.fillStyle = 'rgba(0,0,0,' + this.o + ')';
@@ -243,10 +246,14 @@ const gameOver = () => {
 	clearTimeout(agregar);
 	clearTimeout(agBonus);
 	removeEventListener('keydown', () => {});
+	buttonStart.removeAttribute('disabled');
+	buttonStart.classList.add('enable-button');
+	buttonStart.classList.remove('disable-button');
+	startPanel.classList.remove('display-none');
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawBackground();
 	ctx.font = '36px serif';
-	ctx.fillStyle = 'red';
+	ctx.fillStyle = '#fc6364';
 	ctx.fillText('GAME OVER', canvas.width / 2 - 110, 100);
 };
 
@@ -275,7 +282,18 @@ const getRandomNumber = (min, max) => {
 
 //Función que inicia el juego
 const start = () => {
+	//reseteamos variables
 	reset();
+
+	//damos visivilidad y animacion al panel resultados
+	buttonStart.classList.add('disable-button');
+	buttonStart.setAttribute('disabled', true);
+	setTimeout(() => {
+		startPanel.classList.add('display-none');
+	}, 2000);
+	setTimeout(() => {
+		startPanel.classList.add('display-none');
+	}, 2000);
 	time = Date.now();
 	setDifficult();
 	niveles = setInterval(setDifficult, 61000);
@@ -316,6 +334,5 @@ buttonStart.addEventListener('click', (e) => {
 	e.preventDefault();
 	reset;
 	start();
-
 	addEventListener('keydown', keyPresionada); //evento que contro las keys que tecleamos
 });
