@@ -13,6 +13,7 @@ let time = Date.now();
 let fail = 0;
 let stage = {};
 let marcador = 0;
+let puntos = [];
 
 //variables id de interval timeout
 let niveles, agregar;
@@ -34,6 +35,14 @@ const draw = () => {
 		}
 		if (elemento.x + elemento.vx > canvas.width - 51) {
 			stop = true;
+		}
+	});
+	puntos.forEach((punto, index) => {
+		if (punto.o > 0) {
+			punto.draw();
+			punto.o -= 0.01;
+		} else {
+			puntos.splice(index, 1);
 		}
 	});
 	if (!stop) {
@@ -77,6 +86,19 @@ const getCosas = ({ x = 5, y = 100, vx = 10, vy = 0, letra = 'b' }) => ({
 	},
 });
 
+//Función que construye los datos de las puntuaciones a pintar
+const getPuntos = ({ x, y, p }) => ({
+	x,
+	y,
+	p,
+	o: 1,
+	draw() {
+		ctx.font = '20px serif';
+		ctx.fillStyle = 'rgba(0,0,0,' + this.o + ')';
+		ctx.fillText(this.p, this.x, this.y + 25);
+	},
+});
+
 //Función que agrega elementos al array para pintarlos
 const agregarElementos = () => {
 	if (elementos.length < stage.max) {
@@ -89,6 +111,17 @@ const agregarElementos = () => {
 		elementos.push(cosa);
 	}
 	agregar = setTimeout(agregarElementos, getRandomNumber(stage.minA, stage.maxA));
+};
+
+//Función que agrega elementos al array para pintarlos
+const agregarPuntos = ({ x, y, p }) => {
+	let punto = getPuntos({
+		x,
+		y,
+		p,
+	});
+	puntos.push(punto);
+	console.log(puntos);
 };
 
 //Función que setea la dificultad y devuelve los datos referentes a ella
@@ -131,7 +164,9 @@ const capturar = (key) => {
 			if (key == elementos[i].letra) {
 				let captura = elementos.splice(i, 1);
 				i--;
-				sumarPuntos(captura[0]);
+				let punto = sumarPuntos(captura[0]);
+				console.log(punto);
+				agregarPuntos(punto);
 			}
 		}
 	} else {
@@ -182,6 +217,7 @@ const sumarPuntos = (captura) => {
 	fail = 0;
 	marcador += puntos;
 	puntuaje.innerHTML = marcador;
+	return { p: puntos, x: captura.x, y: captura.y };
 };
 
 //Función que termina el juego, cancela eventos, intervalos, timeouts y animaciones
