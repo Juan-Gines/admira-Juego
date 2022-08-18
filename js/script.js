@@ -415,5 +415,3 @@ buttonStart.addEventListener('click', (e) => {
 	start();
 	addEventListener('keydown', keyPresionada); //evento que contro las keys que tecleamos
 });
-
-//evento que controla la resolución de pantalla
