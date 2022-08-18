@@ -139,3 +139,21 @@ img {
 		opacity: 1;
 	}
 }
+
+@media screen and (max-width: 1200px) {
+	.instrucciones-header,
+	.instrucciones-body,
+	.canvas,
+	.resultados {
+		width: 1000px;
+	}
+}
+
+@media screen and (max-width: 1000px) {
+	.instrucciones-header,
+	.instrucciones-body,
+	.canvas,
+	.resultados {
+		width: 800px;
+	}
+}

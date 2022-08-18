@@ -103,7 +103,7 @@ const getPuntos = ({ x, y, p }) => ({
 	o: 1,
 	t: 30,
 	draw() {
-		ctx.font = '20px serif';
+		ctx.font = '16px "Press Start 2P"';
 		ctx.fillStyle = 'rgba(0,0,0,' + this.o + ')';
 		ctx.fillText(this.p, this.x, this.y + 25);
 	},
@@ -144,7 +144,7 @@ const agregarBonus = () => {
 const setDifficult = () => {
 	const timestamp = Date.now();
 	const stages = [
-		{ level: 1, vx: 10, max: 2, minA: 1500, maxA: 2000, puntos: 1000 },
+		{ level: 1, vx: 1, max: 2, minA: 1500, maxA: 2000, puntos: 1000 },
 		{ level: 2, vx: 2, max: 3, minA: 1200, maxA: 1600, puntos: 2000 },
 		{ level: 3, vx: 3, max: 4, minA: 1000, maxA: 1500, puntos: 4000 },
 		{ level: 4, vx: 5, max: 6, minA: 800, maxA: 1200, puntos: 6000 },
@@ -152,6 +152,7 @@ const setDifficult = () => {
 		{ level: 6, vx: 8, max: 10, minA: 500, maxA: 800, puntos: 10000 },
 	];
 
+	//cambiamos de dificultad cada cierto tiempo
 	if (timestamp - time < 60000) {
 		stage = stages[0];
 	} else if (timestamp - time < 120000) {
@@ -162,7 +163,7 @@ const setDifficult = () => {
 		stage = stages[3];
 	} else if (timestamp - time < 300000) {
 		stage = stages[4];
-	} else if (timestamp - time > 300000) {
+	} else if (timestamp - time >= 300000) {
 		stage = stages[5];
 	}
 };
@@ -175,8 +176,8 @@ const capturar = (key) => {
 				if (key == elementos[i].letra) {
 					let captura = elementos.splice(i, 1);
 					i--;
-					let punto = sumarPuntos(captura[0]);
-					agregarPuntos(punto);
+					let punto = sumarPuntos(captura[0]); //sumamos puntos al marcador
+					agregarPuntos(punto); //agregamos puntuaciones al array del lienzo
 				}
 			}
 		} else {
@@ -192,7 +193,7 @@ const capturar = (key) => {
 	}
 };
 
-//Función que suma puntos al marcador
+//Función que suma puntos al marcador y devuelve los datos para dibujar las puntuaciones
 const sumarPuntos = (captura) => {
 	let disX = (captura.x * 100) / canvas.width;
 	const divisores = [1, 0.9, 0.8, 0.7, 0.6, 0.5];
@@ -246,7 +247,7 @@ const gameOver = () => {
 	clearInterval(niveles);
 	clearTimeout(agregar);
 	clearTimeout(agBonus);
-	removeEventListener('keydown', () => {});
+	removeEventListener('keydown', keyPresionada);
 
 	//damos animaciones al panel de resultados
 	buttonStart.removeAttribute('disabled');
@@ -257,26 +258,30 @@ const gameOver = () => {
 	//dibujamos el game over en el lienzo
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	drawBackground();
-	ctx.font = '36px serif';
+	ctx.font = '48px "Press Start 2P"';
 	ctx.fillStyle = '#fc6364';
-	ctx.fillText('GAME OVER', canvas.width / 2 - 110, 100);
+	ctx.fillText('GAME OVER', canvas.width / 2 - 200, 180);
+
+	ctx.font = '36px "Press Start 2P"';
+	ctx.fillStyle = 'black';
+	ctx.fillText('Tu puntuación: ' + marcador, canvas.width / 2 - 350, 300);
 
 	//comprobamos si hemos conseguido un nuevo récord
-	comprobarRecord(marcador);
+	comprobarRecord();
 };
 
 //----------------- Funciones ajax para la base de datos ---------------
 
-//Función que comprueba si tenemos nuevo record o si viene vacio imprime el record en la pantalla
-const comprobarRecord = (marcador = false) => {
+//Función que comprueba si tenemos nuevo record o si viene vacio imprime el record en el panel de resultados. Si tenemos nuevo record llamará a grabarRecord()
+const comprobarRecord = () => {
 	fetch('controllers/Controller.php')
 		.then((res) => res.json())
 		.then((data) => {
 			const record = parseInt(data.puntuacion);
 			if (!isNaN(record)) {
-				if (marcador === false) {
+				if (marcador) {
 					if (marcador > record) {
-						grabarRecord();
+						grabarRecord(); //guarda el record en bbdd
 					} else {
 						recordTexto.innerHTML = data.puntuacion;
 						return console.log('no lo lograste');
@@ -286,8 +291,8 @@ const comprobarRecord = (marcador = false) => {
 				}
 			} else {
 				console.log('no hay registros');
-				if (marcador && marcador !== 0) {
-					grabarRecord();
+				if (marcador) {
+					grabarRecord(); //guarda el record en bbdd
 				}
 			}
 		})
@@ -296,7 +301,7 @@ const comprobarRecord = (marcador = false) => {
 		});
 };
 
-//Función que graba el record en la base de datos
+//Función que guarda el record en la base de datos
 const grabarRecord = () => {
 	let datos = new FormData();
 	datos.append('marcador', marcador);
@@ -342,6 +347,7 @@ const start = () => {
 	reset();
 
 	//damos visivilidad y animacion al panel resultados
+	puntuaje.innerHTML = '0';
 	buttonStart.classList.add('disable');
 	buttonStart.setAttribute('disabled', true);
 	setTimeout(() => {
@@ -387,10 +393,27 @@ window.onload = () => {
 	comprobarRecord();
 };
 
+//Controlamos la resolución de pantalla y redimensionamos el lienzo
+window.onresize = start2;
+function start2() {
+	const widthClient = document.documentElement.clientWidth;
+	if (widthClient <= 1000) {
+		canvas.width = '800';
+		drawBackground();
+	} else if (widthClient <= 1200) {
+		canvas.width = '1000';
+		drawBackground();
+	} else if (widthClient > 1200) {
+		canvas.width = '1200';
+		drawBackground();
+	}
+}
+
 //Evento que inicia el juego
 buttonStart.addEventListener('click', (e) => {
 	e.preventDefault();
-	reset;
 	start();
 	addEventListener('keydown', keyPresionada); //evento que contro las keys que tecleamos
 });
+
+//evento que controla la resolución de pantalla
