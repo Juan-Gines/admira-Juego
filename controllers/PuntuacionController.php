@@ -1,7 +1,5 @@
 <?php
 
-include "../config/conexion.php";
-
 class PuntuacionController
 {
     private $conexion;
